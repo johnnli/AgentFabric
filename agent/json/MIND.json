@@ -1,0 +1,49 @@
+{
+  "@context": {
+    "agents_list_address": {
+      "url": "http://YOUR_IP:5211/agents"
+    },
+    "metrics_address": {
+      "url": "http://YOUR_IP:5211/metrics"
+    },
+    "name": "http://schema.org/name",
+    "outter_ip_getter_address": {
+      "url": "http://YOUR_IP:5211/my_ip"
+    }
+  },
+  "last": "0",
+  "messager": {
+    "name": "Mid",
+    "url": "http://YOUR_IP:5211/"
+  },
+  "owns": [
+    {
+      "metrics": [
+        {
+          "name": "home_dir",
+          "query": {
+            "function": "get_home_dir",
+            "parameters": {}
+          }
+        },
+        {
+          "name": "ip",
+          "query": {
+            "function": "get_ip",
+            "parameters": {
+              "outter_ip_getter_address": "@outter_ip_getter_address"
+            }
+          }
+        }
+      ],
+      "name": "self_env",
+      "keep": 2
+    }
+  ],
+  "recurr": 1,
+  "self": {
+    "name": "YOUR_NAME"
+  },
+  "sleep": 10,
+  "stop": 0
+}
