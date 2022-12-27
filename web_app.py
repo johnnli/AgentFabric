@@ -44,7 +44,7 @@ def rv():
     n = request.args.get('n')
 
     if MIND.get(n) is None:
-        MIND[n] = {"last":str(time.time())}
+        MIND[n] = {"last":-1}
 
     return str(MIND[n]["last"])
 @app .route('/sendmetrics', methods=["POST"])
@@ -72,9 +72,12 @@ def a():
     global METRICS
     ret = {}
     for item in METRICS:
+        last = 0
+        if METRICS[item].get("last") is not None:
+            last = METRICS[item]["last"]
         ret[item] = {
             "name" : str(item),
-            "last" : METRICS[item]["last"]
+            "last" : last
         }
     return ret
 @app .route('/metrics')
@@ -125,7 +128,7 @@ def mc():
     if n == "":
         METRICS = {}
     else:
-        METRICS[n] = {"last":0}
+        METRICS[n] = {"last":-1}
 
     return METRICS
 @app .route('/metricsv')
@@ -134,13 +137,16 @@ def mv():
     n = request.args.get('n')
 
     if METRICS.get(n) is None:
-        METRICS[n] = {"last":str(time.time())}
+        METRICS[n] = {"last":-1}
 
     return str(METRICS[n]["last"])
 @app .route('/heart')
 def h():
     global METRICS
     n = request.args.get('n')
+    if METRICS.get(n) is None:
+        return "MIND not found."
+
     METRICS[n]["last"] = str(time.time())
 
     return str(METRICS[n]["last"])
@@ -178,8 +184,7 @@ def _quit():
 
 @app .route('/hi')
 def hi():
-    return "hi23"
-
+    return "hi123"
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False,port=5211,host='0.0.0.0')

@@ -3,7 +3,7 @@ import requests
 import os
 
 MIND_updated = ""
-with open(os.sep.join(["agent","json","MIND.json"]),'r')as file:
+with open(os.sep.join(["agent","MIND.json"]),'r')as file:
     for line in file.readlines():
         MIND_updated += line
 
