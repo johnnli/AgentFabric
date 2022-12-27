@@ -3,7 +3,7 @@
 A light-weighted tool for data fabric implemention.
 # Get started
 ## What's this?
-Tiny auto agents controled by the MIND.json, help to extract data, calculating and representation.
+Tiny auto agents controlled by the MIND.json, help to extract data, calculating and representation.
 ## How to use it?
 1. Server side (web_app.py) deployment
 2. Edit MIND.json
