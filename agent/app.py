@@ -269,7 +269,15 @@ def cal_parameters(params, MIND):
             if params[key].get("query") is not None:
                 ret_params[key]=cal_metrics(params[key]["query"], MIND)
             else:
-                ret_params[key]=params[key]
+                ret_params[key] = {}
+                for key_item in params[key]:
+                    if type(params[key][key_item]).__name__ == "dict":
+                        ret_params[key][key_item] = cal_parameters(params[key][key_item], MIND)
+                    else:
+                        if type(params[key][key_item]).__name__ == "str":
+                            ret_params[key][key_item] = get_from_context(params[key][key_item], MIND)
+                        else:
+                            ret_params[key][key_item] = params[key][key_item]
         else:
             ret_params[key]=get_from_context(params[key], MIND)
     return ret_params
@@ -314,17 +322,16 @@ def process():
     global METRICS
 
     if MIND.get("messager") is None:
-        MIND = {
-            "self":{
-                "name":"YOUR_NAME"
-            },
-            "messager":
-            {
-                "name":"Mid",
-                "url":"http://YOUR_IP:5211/"
-            },
-            "last":0
-        }
+        # need to init the MIND, 1st to check local copy, then remote
+        if os.path.exists("MIND.json"):
+            MIND_updated = ""
+            with open(os.sep.join(["MIND.json"]),'r')as file:
+                for line in file.readlines():
+                    MIND_updated += line
+            MIND = json.loads(MIND_updated)
+        else:
+            print("MIND.json not found")
+            return True
 
     response_mv = requests.get(MIND["messager"]["url"] + "metricsv?n=" + MIND["self"]["name"])
     if response_mv.text == "0":
@@ -334,17 +341,8 @@ def process():
     response = requests.get(MIND["messager"]["url"] + "readerv?n=" + MIND["self"]["name"])
     got_ts = float(response.text)
 
-    
-    # who am I?
     if float(MIND["last"]) < got_ts:
-        if MIND.get("stop") is None:
-            MIND_updated = ""
-            with open(os.sep.join(["agent","json","MIND.json"]),'r')as file:
-                for line in file.readlines():
-                    MIND_updated += line
-
-            requests.post(MIND["messager"]["url"] + "sender", data=MIND_updated)
-        
+        # if local MIND version is lower, update local MIND
         response = requests.get(MIND["messager"]["url"] + "reader?n=" + MIND["self"]["name"])
         MIND = json.loads(response.content)
         if MIND["stop"] == 1:
@@ -355,6 +353,14 @@ def process():
             response = requests.get(MIND["messager"]["url"] + "metrics?n=" + MIND["self"]["name"])
             METRICS = json.loads(response.content)
             print(time.strftime("%c") + ": local METRICS upated.")
+    else:
+        if float(MIND["last"]) != got_ts:
+            # if remote MIND version is lower, update remote MIND
+            MIND_updated = ""
+            with open(("MIND.json"),'r')as file:
+                for line in file.readlines():
+                    MIND_updated += line
+            requests.post(MIND["messager"]["url"] + "sender", data=MIND_updated)
 
     # what do I have? & what to do?
     chk_owns(MIND["owns"], MIND,"", METRICS)
@@ -368,7 +374,7 @@ while True:
     try:
         if process():
             time.sleep(MIND["sleep"])
-            print(time.strftime("%c") + ": Processing...")
+            print(time.strftime("%c") + ": Agent [" + MIND["self"]["name"] + "] is working...")
         else:
             break
     except Exception as e:
