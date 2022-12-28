@@ -10,7 +10,7 @@ except Exception as e:
     print(str(e))
 
 file_path = "web_app.py"
-#file_path = os.sep.join(["agent","hub_dump","web_app.py-20221106114033"])
+
 file = {"file":open(file_path,'rb')}
 
 response = requests.post(host + ":5210/u_h", files=file)

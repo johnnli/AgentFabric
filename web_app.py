@@ -17,7 +17,7 @@ METRICS = {}
 def s():
     global MIND
 
-    new_MIND = json.loads(request.data)
+    new_MIND = request.json
     
     n = str(new_MIND["self"]["name"])
 
@@ -51,7 +51,7 @@ def rv():
 def sm():
     global METRICS
     
-    got_data = json.loads(request.data)
+    got_data = request.json
     n = str(got_data["self"]["name"])
 
     for key in got_data:
@@ -181,10 +181,6 @@ def _quit():
     #os.system("python web_admin.py")
     #subprocess.Popen("python web_admin.py", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     os._exit(0)
-
-@app .route('/hi')
-def hi():
-    return "hi123"
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False,port=5211,host='0.0.0.0')
