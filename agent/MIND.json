@@ -1,5 +1,6 @@
 {
   "@context": {
+    "self_name": "YOUR_NAME",
     "agents_list_address": {
       "url": "http://YOUR_IP:5211/agents"
     },
@@ -41,9 +42,6 @@
     }
   ],
   "recurr": 1,
-  "self": {
-    "name": "YOUR_NAME"
-  },
   "sleep": 10,
   "stop": 0
 }

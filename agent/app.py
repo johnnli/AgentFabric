@@ -1,6 +1,4 @@
 #import numpy
-from genericpath import isdir
-from glob import glob
 import json
 import requests
 import time
@@ -43,7 +41,7 @@ def chk_owns(own_obj, MIND, path, METRICS):
                     METRICS["last"] = time.time()
 
                 if item_metrics.get("query") is not None:
-                    write_metrics(path_prefix + "." + item_metrics["name"], cal_metrics(item_metrics["query"], MIND), MIND["messager"]["url"], METRICS,MIND["self"]["name"], keepCount)
+                    write_metrics(path_prefix + "." + item_metrics["name"], cal_metrics(item_metrics["query"], MIND), MIND["messager"]["url"], METRICS,MIND["@context"]["self_name"], keepCount)
 
         if item_obj.get("views") is not None:
             for item_metrics in item_obj["views"]:
@@ -66,9 +64,10 @@ def write_metrics(name, value, url, METRICS, self_name, keepCount):
         # if just got from remote, this should be a list
         if type(METRICS[name]).__name__ == "list":
             if len(METRICS[name]) > 0:
-                if METRICS[name][-1].get("value") is not None:
-                    latest_value = METRICS[name][-1]["value"]
-                    METRICS[name] = latest_value
+                if type(METRICS[name][-1]).__name__ == "dict":
+                    if METRICS[name][-1].get("value") is not None:
+                        latest_value = METRICS[name][-1]["value"]
+                        METRICS[name] = latest_value
 
         if latest_value != value and str(value).strip() != "":
             METRICS[name] = value
@@ -168,33 +167,33 @@ def process():
     if MIND.get("messager") is None:
         # need to init the MIND, 1st to check local copy, then remote
         if os.path.exists("MIND.json"):
-            MIND_updated = ""
             with open(os.sep.join(["MIND.json"]),'r')as file:
-                for line in file.readlines():
-                    MIND_updated += line
-            MIND = json.loads(MIND_updated)
+                MIND = json.load(file)
         else:
             print("MIND.json not found")
             return True
 
-    response_mv = requests.get(MIND["messager"]["url"] + "metricsv?n=" + MIND["self"]["name"])
+    self_name = MIND["@context"]["self_name"]
+    messager_url = MIND["messager"]["url"]
+
+    response_mv = requests.get(messager_url + "metricsv?n=" + self_name)
     if response_mv.text == "0":
         METRICS = {}
 
-    requests.get(MIND["messager"]["url"] + "heart?n=" + MIND["self"]["name"])
-    response = requests.get(MIND["messager"]["url"] + "readerv?n=" + MIND["self"]["name"])
+    requests.get(messager_url + "heart?n=" + self_name)
+    response = requests.get(messager_url + "readerv?n=" + self_name)
     got_ts = float(response.text)
 
     if float(MIND["last"]) < got_ts:
         # if local MIND version is lower, update local MIND
-        response = requests.get(MIND["messager"]["url"] + "reader?n=" + MIND["self"]["name"])
+        response = requests.get(messager_url + "reader?n=" + self_name)
         MIND = json.loads(response.content)
         if MIND["stop"] == 1:
             return False
         print(time.strftime("%c") + ": local MIND upated.")
 
         if METRICS == {}:
-            response = requests.get(MIND["messager"]["url"] + "metrics?n=" + MIND["self"]["name"])
+            response = requests.get(messager_url + "metrics?n=" + self_name)
             METRICS = json.loads(response.content)
             print(time.strftime("%c") + ": local METRICS upated.")
     else:
@@ -204,7 +203,7 @@ def process():
             with open(("MIND.json"),'r')as file:
                 MIND_updated=json.load(file)
 
-            requests.post(MIND["messager"]["url"] + "sender", json=MIND_updated)
+            requests.post(messager_url + "sender", json=MIND_updated)
 
     # what do I have? & what to do?
     chk_owns(MIND["owns"], MIND,"", METRICS)
@@ -218,7 +217,7 @@ while True:
     try:
         if process():
             time.sleep(MIND["sleep"])
-            print(time.strftime("%c") + ": Agent [" + MIND["self"]["name"] + "] is working...")
+            print(time.strftime("%c") + ": Agent [" + MIND["@context"]["self_name"] + "] is working...")
         else:
             break
     except Exception as e:

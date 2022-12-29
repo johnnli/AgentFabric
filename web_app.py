@@ -13,13 +13,43 @@ global METRICS
 MIND = {}
 METRICS = {}
 
+@app .route('/backup')
+def bakup():
+    global MIND
+    global METRICS
+
+    target_folder = os.sep.join([os.getcwd(), "bak"])
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder)
+
+    with open(os.sep.join([target_folder, "MIND.json"]),'w')as file:
+        json.dump(MIND,file)
+
+    with open(os.sep.join([target_folder, "METRICS.json"]),'w')as file:
+        json.dump(METRICS,file)
+
+    return "backup done."
+@app .route('/recovery')
+def recovery():
+    global MIND
+    global METRICS
+
+    target_folder = os.sep.join([os.getcwd(), "bak"])
+    if os.path.exists(os.sep.join([target_folder, "MIND.json"])) and os.path.exists(os.sep.join([target_folder, "METRICS.json"])):
+        with open(os.sep.join([target_folder, "MIND.json"]),'r')as file:
+            MIND = json.load(file)
+        with open(os.sep.join([target_folder, "METRICS.json"]),'r')as file:
+            METRICS = json.load(file)
+        return "Recovery done."
+
+    return "Backup file(s) not found."
 @app .route('/sender', methods=["POST"])
 def s():
     global MIND
 
     new_MIND = request.json
     
-    n = str(new_MIND["self"]["name"])
+    n = str(new_MIND["@context"]["self_name"])
 
     if MIND.get(n) is None:
         MIND[n] = new_MIND
