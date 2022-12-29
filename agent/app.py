@@ -36,6 +36,8 @@ def chk_owns(own_obj, MIND, path, METRICS):
                 
             for item_metrics in item_obj["metrics"]:
                 if item_metrics.get("sleep") is not None:
+                    if METRICS.get("last") is None:
+                        METRICS["last"] = time.time()
                     if not chk_sleep_enough(METRICS["last"],item_metrics["sleep"]):
                         continue
                     METRICS["last"] = time.time()
